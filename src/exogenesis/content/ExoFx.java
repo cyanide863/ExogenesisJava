@@ -168,6 +168,60 @@ public class ExoFx{
                     });
                 }
             }),
+            randLifeSparkExoLong = new Effect(28f, e -> {
+                color(Color.white, e.color, e.fin());
+                stroke(e.fout() * 1.5f + 0.5f);
+
+                rand.setSeed(e.id);
+                for(int i = 0; i < 5; i++){
+                    float ang = e.rotation + rand.range(9f), len = rand.random(150f * e.finpow());
+                    e.scaled(e.lifetime * rand.random(0.5f, 1f), p -> {
+                        v.trns(ang, len);
+                        lineAngle(e.x + v.x, e.y + v.y, ang, p.fout(circleOut) * 40f + 0.5f);
+                    });
+                }
+            }),
+            randLifeSparkExoLongCone = new Effect(28f, e -> {
+                color(Color.white, e.color, e.fin());
+                stroke(e.fout() * 1.5f + 0.5f);
+
+                rand.setSeed(e.id);
+                for(int i = 0; i < 5; i++){
+                    float ang = e.rotation + rand.range(30f), len = rand.random(150f * e.finpow());
+                    e.scaled(e.lifetime * rand.random(0.5f, 1f), p -> {
+                        v.trns(ang, len);
+                        lineAngle(e.x + v.x, e.y + v.y, ang, p.fout(circleOut) * 40f + 0.5f);
+                    });
+                }
+            }),
+
+    artemisBlowbackSpark = new Effect(28f, e -> {
+        color(Pal.heal, Color.valueOf("1fbb39"), e.fin());
+        stroke(e.fout() * 1.5f + 0.5f);
+
+        rand.setSeed(e.id);
+        for(int i = 0; i < 5; i++){
+            float ang = e.rotation + rand.range(9f), len = rand.random(150f * e.finpow());
+            e.scaled(e.lifetime * rand.random(0.5f, 1f), p -> {
+                v.trns(ang, len);
+                lineAngle(e.x + v.x, e.y + v.y, ang, p.fout(circleOut) * 40f + 0.5f);
+            });
+        }
+    }),
+            artemisFrontSpark = new Effect(28f, e -> {
+                color(Pal.heal, Color.valueOf("1fbb39"), e.fin());
+                stroke(e.fout() * 1.5f + 0.5f);
+
+                rand.setSeed(e.id);
+                for(int i = 0; i < 5; i++){
+                    float ang = e.rotation + rand.range(30f), len = rand.random(150f * e.finpow());
+                    e.scaled(e.lifetime * rand.random(0.5f, 1f), p -> {
+                        v.trns(ang, len);
+                        lineAngle(e.x + v.x, e.y + v.y, ang, p.fout(circleOut) * 40f + 0.5f);
+                    });
+                }
+            }),
+
             randLifeSparkCone = new Effect(23f, e -> {
                 color(Color.white, e.color, e.fin());
                 stroke(e.fout() * 1.5f + 0.5f);
@@ -190,6 +244,29 @@ public class ExoFx{
                     float rot = e.rotation + rand.range(15f) + 180f;
                     v.trns(rot, rand.random(e.fin() * 27f));
                     lineAngle(e.x + v.x, e.y + v.y, rot, e.fout() * rand.random(6f, 16f) + 1.5f);
+                }
+            }),
+            coolBulletTrail2 = new Effect(13, e -> {
+                color(Color.white, e.color, e.fin());
+                stroke(0.15f + e.fout() * 1.7f);
+                rand.setSeed(e.id);
+                /*
+                for(int i = 0; i < 4; i++){
+                    float fin = e.fin() / rand.random(0.5f, 1f), fout = 1f - fin, angle = rand.random(360f), len = rand.random(0.5f, 1f);
+
+                    if(fin <= 1f){
+                        Tmp.v1.trns(angle, fin * 24f * len);
+
+                        alpha((0.5f - Math.abs(fin - 0.5f)) * 2f);
+                        Lines.circle(e.x + Tmp.v1.x, e.y + Tmp.v1.y, 0.5f + fout * 2f);
+                }
+               }
+                */
+                for(int i = 0; i < 2; i++) {
+                    float rot = e.rotation + rand.range(25f) + 180f;
+                    v.trns(rot, rand.random(e.fin() * 27f));
+
+                    Lines.circle(e.x + v.x, e.y + v.y, e.fout() * rand.random(0f, 6f) + 1.5f);
                 }
             }),
             spawnGround = new Effect(60f, e -> {
@@ -324,6 +401,13 @@ public class ExoFx{
                     Fill.circle(e.x + x, e.y + y, 0.1f + e.fout() * 1.4f);
                 });
             }),
+            thermalFire = new Effect(20f, e -> {
+                color(Color.valueOf("ffbcbf"), Color.valueOf("ff6369"), e.fin());
+
+                randLenVectors(e.id, 2, 2f + e.fin() * 7f, (x, y) -> {
+                    Fill.circle(e.x + x, e.y + y, 0.2f + e.fout() * 1.5f);
+                });
+            }),
 
     randLifeSparkExoFollow = new Effect(24f, e -> {
         color(Color.white, e.color, e.fin());
@@ -424,6 +508,13 @@ public class ExoFx{
                 float circleRad = 4f + e.finpow() * 45f;
                 Lines.circle(e.x, e.y, circleRad);
             }),
+            greenPulse = new Effect(16, e -> {
+                color(Color.white, Pal.heal, e.fin());
+                stroke(2.5f + e.fout());
+                Lines.circle(e.x, e.y, e.fin() * 16f);
+
+                Drawf.light(e.x, e.y, 23f, Pal.heal, e.fout() * 0.7f);
+            }),
 
     neutronMorterShockWave = new Effect(120F, 600f, e -> {
         float rad = 40f;
@@ -461,9 +552,37 @@ public class ExoFx{
                 stroke(e.fout() * 2f);
                 float circleRad = 4f + e.finpow() * 75f;
                 Lines.circle(e.x, e.y, circleRad);
+
+                color(Color.white);
+
+                e.scaled(6, i -> {
+                    stroke(5f * i.fout());
+                    Lines.circle(e.x, e.y, 40f + i.fin() * 65f);
+                });
             }).layer(Layer.effect + 0.002f),
             odinNukeShockWave = new Effect(160F, 1600f, e -> {
                 float rad = 60f;
+                rand.setSeed(e.id);
+
+                Draw.color(Color.white, e.color, e.fin() + 0.6f);
+                float circleRad = e.fin(Interp.circleOut) * rad * 4f;
+                Lines.stroke(7 * e.fout());
+                Lines.circle(e.x, e.y, circleRad);
+                for(int i = 0; i < 24; i++){
+                    Tmp.v1.set(1, 0).setToRandomDirection(rand).scl(circleRad);
+                    DrawFunc.tri(e.x + Tmp.v1.x, e.y + Tmp.v1.y, rand.random(circleRad / 16, circleRad / 12) * e.fout(), rand.random(circleRad / 4, circleRad / 1.5f) * (1 + e.fin()) / 2, Tmp.v1.angle() - 180);
+                }
+                Draw.blend(Blending.additive);
+                Draw.z(Layer.effect + 0.1f);
+
+                Fill.light(e.x, e.y, circleVertices(circleRad), circleRad, Color.clear, Tmp.c1.set(Draw.getColor()).a(e.fout(Interp.pow10Out)));
+                Draw.blend();
+                Draw.z(Layer.effect);
+
+                Drawf.light(e.x, e.y, rad * e.fout(Interp.circleOut) * 4f, e.color, 0.7f);
+            }).layer(Layer.effect + 0.001f),
+            apophisNukeShockWave = new Effect(160F, 1600f, e -> {
+                float rad = 37f;
                 rand.setSeed(e.id);
 
                 Draw.color(Color.white, e.color, e.fin() + 0.6f);
@@ -1052,6 +1171,18 @@ public class ExoFx{
                     blend();
                 });
             }),
+            hitBulletColorExo = new Effect(14, e -> {
+                color(Color.white, e.color, e.fin());
+
+                e.scaled(7f, s -> {
+                    stroke(0.5f + s.fout());
+                    Lines.circle(e.x, e.y, s.fin() * 4f);
+                });
+
+                stroke(0.5f + e.fout());
+
+                Drawf.light(e.x, e.y, 10f, e.color, 0.6f * e.fout());
+            }),
 
     chainLightningFade = new Effect(45f, 500f, e -> {
         if(!(e.data instanceof Position)) return;
@@ -1212,7 +1343,12 @@ public class ExoFx{
                     lineAngle(e.x + x, e.y + y, Mathf.angle(x, y), e.fin() * 5f + 2f);
                 });
             }),
-
+                    starChargeColor= new Effect(100f, 100f, e -> {
+                        color(e.color);
+                        Fill.circle(e.x, e.y, e.fin() * 7);
+                        color(Color.white);
+                        Fill.circle(e.x, e.y, e.fin() * 4);
+                    }).followParent(true).rotWithParent(true),
             starChargeWhite = new Effect(100f, 100f, e -> {
                     color(ExoPal.starWhite);
                     Fill.circle(e.x, e.y, e.fin() * 10);
@@ -1257,6 +1393,14 @@ public class ExoFx{
                     lineAngle(e.x + x, e.y + y, Mathf.angle(x, y), e.fslope() * 5f + 0.5f);
                 });
             }),
+                    singleSparkNoMove = new Effect(21f, e -> {
+                        color(Color.white, e.color, e.fin());
+                        stroke(e.fout() * 1.1f + 0.5f);
+
+                        randLenVectors(e.id, 1, 2f * e.fin(), e.rotation, 1f, (x, y) -> {
+                            lineAngle(e.x + x, e.y + y, Mathf.angle(x, y), e.fslope() * 5f + 0.5f);
+                        });
+                    }),
                     singleSparkIn = new Effect(10f, e -> {
                         color(Color.white, e.color, e.fin());
                         stroke(e.fout() * 1.1f + 0.5f);
@@ -1279,6 +1423,13 @@ public class ExoFx{
 
                         randLenVectors(e.id, 2, 37f * e.fin(), e.rotation, 9f, (x, y) -> {
                             lineAngle(e.x + x, e.y + y, Mathf.angle(x, y), e.fslope() * 11f + 0.5f);
+                        });
+                    }),
+                    ballfireHelium = new Effect(20f, e -> {
+                        color(Color.valueOf("ecb5ff"), Color.valueOf("ffda71"), Color.valueOf("ff5a37"), e.fin());
+
+                        randLenVectors(e.id, 2, 2f + e.fin() * 7f, (x, y) -> {
+                            Fill.circle(e.x + x, e.y + y, 0.2f + e.fout() * 1.5f);
                         });
                     }),
             singleSparkYellow = new Effect(21f, e -> {

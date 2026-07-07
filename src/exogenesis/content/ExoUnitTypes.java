@@ -1,9 +1,7 @@
 package exogenesis.content;
 
-import arc.graphics.g2d.Draw;
 import arc.graphics.g2d.Fill;
 import arc.graphics.g2d.Lines;
-import arc.util.Tmp;
 import exogenesis.content.effects.ExoChargeFx;
 import exogenesis.content.effects.ExoHitFx;
 import exogenesis.content.effects.ExoShootFx;
@@ -12,11 +10,10 @@ import exogenesis.graphics.*;
 import exogenesis.type.abilities.TurretShield;
 import exogenesis.type.bullet.*;
 import exogenesis.type.bullet.vanilla.*;
-import exogenesis.type.unit.ai.SniperAI;
 import exogenesis.type.unit.AxinUnitType;
 import arc.graphics.*;
 import arc.math.*;
-import exogenesis.type.unit.ai.VanstarUnitType;
+import exogenesis.type.unit.VanstarUnitType;
 import mindustry.ai.types.BuilderAI;
 import mindustry.ai.types.DefenderAI;
 import mindustry.entities.*;
@@ -31,7 +28,6 @@ import mindustry.type.*;
 import mindustry.type.unit.*;
 import mindustry.type.weapons.*;
 import mindustry.content.*;
-import mindustry.world.meta.BlockFlag;
 
 import static arc.math.Angles.randLenVectors;
 import static exogenesis.content.ExoDamageTypes.*;
@@ -49,6 +45,7 @@ public class ExoUnitTypes {
     lux, glimmer, shine, auric, radiance,
     flicker, ember, blaze, pyric, phlogiston,
     prayer, apprise, revelation, enlightenment, excelsus,
+    aim, gleam, wise,
     twinkle, starlight, stardustVoyager, orion, galileo, kuiper, oort, sirius, scout, guard, sentry, sentinel, overseer /* stele, pedestal, pylon, pillaster, monolith, meteor, asteroid, comet, planetoid, moon */;
 
     public static void load() {
@@ -1724,13 +1721,13 @@ public class ExoUnitTypes {
                         width = height = 16;
                         effect = Fx.fire;
                         randomEffectRot = 360;
-                        effectChance = 0.7f;
+                        effectChance = 0.05f;
                     }},
                     new EffectSpawnPart() {{
                         useProgress = mirror = false;
                         y = 0f;
                         width = height = 16;
-                        effect = Fx.fireballsmoke;
+                        effect = ExoFx.coolBulletTrail2;
                         randomEffectRot = 360;
                         effectChance = 0.3f;
                     }},
@@ -1740,7 +1737,7 @@ public class ExoUnitTypes {
                         width = height = 16;
                         effect = Fx.ballfire;
                         randomEffectRot = 360;
-                        effectChance = 0.5f;
+                        effectChance = 0.1f;
                     }}
                     );
             setEnginesMirror(
@@ -1774,6 +1771,7 @@ public class ExoUnitTypes {
                 rotationLimit = 150;
                 x = 17;
                 shootSound = Sounds.shootScepter;
+                shootSoundVolume = 0.6f;
                 recoil = 0;
                 shake = 1f;
                 shoot = new  ShootPattern(){{
@@ -1781,7 +1779,7 @@ public class ExoUnitTypes {
                     shots = 3;
                 }};
                 inaccuracy = 2;
-                bullet = new ExoBasicBulletType(16.8f, 35){{
+                bullet = new ExoBasicBulletType(7.8f, 35){{
                     addDamageMultiplier(
                             thermal, 0.5f,
                             pierce, 0.5f
@@ -1797,7 +1795,7 @@ public class ExoUnitTypes {
                     shootEffect = Fx.shootBigColor;
                     smokeEffect = Fx.shootSmokeDisperse;
                     backColor = trailColor = hitColor = ExoPal.empyreanPyre;
-                    lifetime = 19f;
+                    lifetime = 29f;
                     incendAmount = 5;
                     incendChance = 100;
                     incendSpread = 10;
@@ -2952,6 +2950,375 @@ public class ExoUnitTypes {
                     hitColor = ExoPal.empyreanIndigo;
 
                     colors = new Color[]{ExoPal.empyreanIndigoDark.cpy().a(0.4f), ExoPal.empyreanIndigo, ExoPal.empyreanblueLight, Color.white};
+                }};
+            }});
+        }};
+
+        aim = new VanstarUnitType("aym") {{
+            constructor = LegsUnit::create;
+            speed = 0.7f;
+            hitSize = 16f;
+            health = 570f;
+            rotateSpeed = 2.5f;
+            faceTarget = true;
+            armor = 11;
+            shadowElevation = 0.1f;
+            targetAir = false;
+            allowLegStep = true;
+            hovering = true;
+            legPhysicsLayer = false;
+            legGroupSize = 4;
+            legCount = 6;
+            legExtension = 1;
+            legMoveSpace = 0.8f;
+            legContinuousMove = true;
+            lockLegBase = true;
+            rippleScale = 0.2f;
+            legBaseOffset = 10;
+            legLength = 14;
+            weapons.add(new Weapon("exogenesis-aym-weapon") {{
+                reload = 10;
+                mirror = true;
+                top = false;
+                x = 11;
+                shootY = 8;
+                inaccuracy = 4;
+                cooldownTime = 60;
+                shootSound = Sounds.shootCleroi;
+                showStatSprite = true;
+                shootCone = 30;
+                recoil = 4;
+                bullet = new ExoBasicBulletType(9, 13){{
+                    height = 8;
+                    width = 8;
+                    buildingDamageMultiplier = 1.2f;
+                    addDamageMultiplier(
+                            thermal, 0.5f,
+                            kinetic, 0.5f
+                    );
+                    sprite = "large-orb";
+                    parts.addAll(
+                            new FlarePart(){{
+                                progress = PartProgress.life.slope().curve(Interp.pow2In);
+                                radius = 0f;
+                                radiusTo = 22f;
+                                sides = 3;
+                                color1 = ExoPal.empyreanPyre;
+                                color2 = ExoPal.empyreanPyreLight;
+                                layer = Layer.effect;
+                                stroke = 4f;
+                                spinSpeed = 4;
+                                y = 0;
+                                followRotation = true;
+                            }}
+                    );
+                    shootEffect = new MultiEffect( Fx.shootBigColor, ExoFx.hitMeltColor);
+                    backColor = hitColor = trailColor = ExoPal.empyreanPyre;
+                    hitEffect = despawnEffect = new MultiEffect(Fx.colorSparkBig, Fx.explosion, ExoFx.blastExplosionColor);
+                    shrinkX = shrinkY = 0f;
+                    trailChance = 0.24f;
+                    rotationOffset = 90f;
+                    trailRotation = true;
+                    trailEffect = ExoFx.coolBulletTrail2;
+                    drag = 0.03f;
+                    lifetime = 20f;
+                    trailWidth = 4f;
+                    trailLength = 5;
+                    incendAmount = 5;
+                    incendChance = 100;
+                    incendSpread = 10;
+                    fragOnHit = true;
+                    fragLifeMin = 1f;
+                    fragBullets = 1;
+                    fragBullet = new FireBulletType(3.5f,4) {{
+                        lifetime = 30;
+                        radius = 3;
+                        incendAmount = 10;
+                        incendChance = 100;
+                        incendSpread = 10;
+                        collides = true;
+                        absorbable = false;
+                        hitEffect = Fx.fireHit;
+                        drag = 0.0001f;
+                        colorFrom = ExoPal.empyreanPyreLight;
+                        colorMid = ExoPal.empyreanPyre;
+                        colorTo = ExoPal.empyreanPyreDark;
+                    }};
+                }};
+            }});
+        }};
+        gleam = new VanstarUnitType("gleam"){{
+            constructor = UnitEntity::create;
+            shadowElevation = 3;
+            speed = 7.4f;
+            hitSize = 21f;
+            health = 180f;
+            flying = true;
+            drag = 0.08f;
+            accel = 0.09f;
+            faceTarget = true;
+            lowAltitude = false;
+            armor = 3;
+            rotateSpeed = 6.4f;
+            engineSize = 0;
+            parts.addAll(
+                    new EffectSpawnPart() {{
+                        useProgress = false;
+                        mirror = true;
+                        y = -3.25f;
+                        x = 9.75f;
+                        effectColor = Color.valueOf("9b3dd0");
+                        effect = ExoFx.singleSparkNoMove;
+                        randomEffectRot = 1;
+                        effectRot = -180;
+                        effectChance = 1f;
+                    }},
+                    new ShapePart() {{
+                        mirror = true;
+                        circle = true;
+                        hollow = true;
+                        layer = Layer.effect;
+                        y = -4f;
+                        x = 6;
+                        color = Color.valueOf("9b3dd0");
+                        radiusTo = radius = 3f;
+                    }},
+                    new HaloPart() {{
+                        y = -4f;
+                        x = 6;
+                        radius = 1.8f;
+                        mirror = true;
+                        tri = true;
+                        color = Color.valueOf("9b3dd0");
+                        layer = Layer.effect;
+                        haloRotateSpeed = -8.5f;
+                        haloRotation = -180;
+                        haloRadius = haloRadiusTo = 3f;
+                        stroke = 0f;
+                        strokeTo = 4f;
+                        shapes = 3;
+                        triLengthTo = triLength = 2f;
+                    }},
+                    new HaloPart() {{
+                        y = -4f;
+                        x = 6;
+                        radius = 1.8f;
+                        tri = true;
+                        mirror = true;
+                        color = Color.valueOf("9b3dd0");
+                        layer = Layer.effect;
+                        haloRotateSpeed = 8.5f;
+                        haloRadius = haloRadiusTo = 3f;
+                        haloRotation = -180;
+                        stroke = 0f;
+                        strokeTo = 4f;
+                        shapes = 3;
+                        triLengthTo = triLength = 2f;
+                    }}
+            );
+            weapons.add(new Weapon("gleaming") {{
+                reload = 4.5f;
+                mirror = true;
+                alternate = true;
+                x = 4;
+                y = 2;
+                shootSound = Sounds.shootCleroi;
+                showStatSprite = false;
+                /*
+                shoot = new  ShootPattern(){{
+                    shotDelay = 1.5f;
+                    shots = 7;
+                }};
+
+                 */
+                inaccuracy = 20;
+                velocityRnd = 0.3f;
+                recoil = 0;
+                shake = 1f;
+                bullet = new ExoBasicBulletType(9f, 3){{
+                    width = height = 7f;
+                    addDamageMultiplier(
+                            ExoDamageTypes.energy, 1f
+                    );
+                    sprite = "exogenesis-plasma";
+                    frontColor = Color.white;
+                    spin = 3;
+                    rotationOffset = 3;
+                    backColor = hitColor = trailColor = Color.valueOf("9b3dd0");
+                    lifetime = 12f;
+                    weaveMag = 1;
+                    weaveScale = 2;
+                    weaveRandom = true;
+                    sticky = true;
+                    stickyExtraLifetime = 20;
+                    hitEffect = despawnEffect = ExoFx.hitBulletColorExo;
+                    shrinkY = shrinkX = 0;
+                    shootEffect = new MultiEffect(Fx.shootSmallColor, ExoShootFx.colorSparkShootSmall);
+                    trailLength = 2;
+                    trailWidth = 1f;
+                    homingPower = 0.0989f;
+                    homingRange = 40;
+                    homingDelay = 2;
+                }};
+            }});
+        }};
+        wise = new VanstarUnitType("wise"){{
+            constructor = UnitEntity::create;
+            shadowElevation = 3;
+            speed = 3f;
+            hitSize = 28f;
+            health = 1000f;
+            flying = true;
+            drag = 0.06f;
+            accel = 0.09f;
+            faceTarget = true;
+            lowAltitude = true;
+            armor = 25;
+            trailLength = 8;
+            trailColor = engineColor = ExoPal.empyreanIndigo;
+            rotateSpeed = 2.8f;
+            engineSize = 4;
+            engineOffset = 20;
+            setEnginesMirror(
+                    new UnitEngine(9.25f, -13, 3f, -315f)
+            );
+            //energy
+            weapons.add(new Weapon("exogenesis-wise-bolter") {{
+                reload = 7f;
+                layerOffset = -0.0001f;
+                mirror = alternate = true;
+                rotate = true;
+                rotateSpeed = 4;
+                rotationLimit = 45;
+                x = 6;
+                y = 2;
+                shootSound = Sounds.shootElude;
+                showStatSprite = true;
+                inaccuracy = 2;
+                recoil = 2;
+                bullet = new ExoBasicBulletType(7f, 10){{
+                    width = 2;
+                    height = 5f;
+                    sprite = "circle-bullet";
+                    addDamageMultiplier(
+                            ExoDamageTypes.energy, 1f
+                    );
+                    laserAbsorb = true;
+                    frontColor = Color.white;
+                    backColor = hitColor = trailColor = Pal.lancerLaser;
+                    hitEffect = despawnEffect = Fx.hitBulletColor;
+                    lifetime = 26f;
+                    shrinkY = shrinkX = 0;
+                    lightning = 2;
+                    lightningLength = 2;
+                    lightningColor = Pal.lancerLaser;
+                    lightningDamage = 3;
+                    shootEffect = Fx.shootSmallColor;
+                    trailLength = 10;
+                    trailWidth = 1f;
+                }};
+            }});
+            //kinetic
+            weapons.add(new Weapon("exogenesis-wise-bolter") {{
+                reload = 7f;
+                layerOffset = -0.0001f;
+                mirror = alternate = true;
+                rotate = true;
+                rotateSpeed = 4;
+                rotationLimit = 45;
+                x = 10;
+                y = -5;
+                shootSound = Sounds.shootElude;
+                showStatSprite = true;
+                inaccuracy = 2;
+                recoil = 2;
+                bullet = new ExoBasicBulletType(7f, 10){{
+                    width = 2.5f;
+                    height = 5f;
+                    sprite = "circle-bullet";
+                    pierceArmor = true;
+                    addDamageMultiplier(
+                            kinetic, 1f
+                    );
+                    backColor = hitColor = trailColor = Pal.bulletYellowBack;
+                    hitEffect = despawnEffect = Fx.hitBulletColor;
+                    lifetime = 26f;
+
+                    shrinkY = shrinkX = 0;
+                    frontColor = Pal.bulletYellow;
+                    shootEffect = Fx.shootSmallColor;
+                    trailLength = 10;
+                    trailWidth = 1f;
+                }};
+            }});
+            //thermal
+            weapons.add(new Weapon("exogenesis-wise-bolter") {{
+                reload = 7f;
+                mirror = alternate = true;
+                rotationLimit = 45;
+                rotate = true;
+                rotateSpeed = 4;
+                x = 7;
+                y = -2.5f;
+                shootSound = Sounds.shootElude;
+                showStatSprite = true;
+                inaccuracy = 2;
+                recoil = 2;
+                bullet = new ExoBasicBulletType(5f, 15){{
+                    width = 2;
+                    height = 5f;
+                    weaveMag = 2;
+                    weaveScale = 7;
+                    weaveRandom = true;
+                    sprite = "circle-bullet";
+                    trailEffect = ExoFx.thermalFire;
+                    trailChance = 0.4f;
+                    addDamageMultiplier(
+                            thermal, 1f
+                    );
+                    frontColor = Color.white;
+                    backColor = hitColor = trailColor = Color.valueOf("ff6369");
+                    hitEffect = despawnEffect = Fx.hitBulletColor;
+                    lifetime = 31f;
+                    shrinkY = shrinkX = 0;
+                    shootEffect = Fx.shootSmallColor;
+                    trailLength = 10;
+                    trailWidth = 1f;
+                }};
+            }});
+            //pierce
+            weapons.add(new Weapon("exogenesis-wise-bolter") {{
+                reload = 13f;
+                mirror = true;
+                alternate = false;
+                rotationLimit = 45;
+                rotate = true;
+                rotateSpeed = 4;
+                x = 9;
+                y = -9.25f;
+                shootSound = Sounds.shootElude;
+                showStatSprite = true;
+                inaccuracy = 2;
+                recoil = 2;
+                bullet = new ExoBasicBulletType(12f, 8){{
+                    width = 1.7f;
+                    height = 8f;
+                    sprite = "circle-bullet";
+                    pierce = true;
+                    pierceBuilding = true;
+                    pierceCap = 3;
+                    addDamageMultiplier(
+                            ExoDamageTypes.pierce, 1f
+                    );
+                    backColor = hitColor = trailColor = Color.valueOf("b7e1ea");
+                    hitEffect = despawnEffect = Fx.hitBulletColor;
+                    lifetime = 21f;
+
+                    shrinkY = shrinkX = 0;
+                    frontColor = Color.white;
+                    shootEffect = Fx.shootSmallColor;
+                    trailLength = 10;
+                    trailWidth = 1f;
                 }};
             }});
         }};

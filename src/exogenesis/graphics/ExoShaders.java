@@ -1,5 +1,6 @@
 package exogenesis.graphics;
 
+import arc.Core;
 import arc.files.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
@@ -18,15 +19,19 @@ import static mindustry.Vars.*;
 
 public class ExoShaders {
 
+//    public static @Nullable ShelterShader shelter;
+//    public static final float shelterShieldLayer = 128f;
+
     public static DepthShader depth;
     public static DepthAtmosphereShader depthAtmosphere;
 
-    public static @Nullable SurfaceShader dalani;
-    public static CacheLayer.ShaderLayer dalaniLayer;
+    public static @Nullable SurfaceShader glacium;
+    public static CacheLayer.ShaderLayer glaciumLayer;
 
     public static PlanetTextureShader planetTextureShader;
+    public static RingShader rings;
 
-    public static void load() {
+    public static void load(){
         String prevVert = Shader.prependVertexCode, prevFrag = Shader.prependFragmentCode;
         Shader.prependVertexCode = Shader.prependFragmentCode = "";
 
@@ -37,11 +42,23 @@ public class ExoShaders {
         depth = new DepthShader();
         depthAtmosphere = new DepthAtmosphereShader();
 
-        dalani = new SurfaceShader("dalani");
-        dalaniLayer = new CacheLayer.ShaderLayer(dalani);
-        CacheLayer.add(dalaniLayer);
+        glacium = new SurfaceShader("glacium");
+        glaciumLayer = new CacheLayer.ShaderLayer(glacium);
+        CacheLayer.add(glaciumLayer);
 
+        rings = new RingShader("rings", "rings");
         planetTextureShader = new PlanetTextureShader();
+
+//        shelter = new ShelterShader();
+//
+//        Events.run(EventType.Trigger.draw, () -> {
+//            if(renderer.animateShields && shelter != null){
+//                Draw.drawRange(shelterShieldLayer, 1f, () -> renderer.effectBuffer.begin(Color.clear), () -> {
+//                    renderer.effectBuffer.end();
+//                    renderer.effectBuffer.blit(shelter);
+//                });
+//            }
+//        });
 
         Shader.prependVertexCode = prevVert;
         Shader.prependFragmentCode = prevFrag;
@@ -49,14 +66,14 @@ public class ExoShaders {
 
     public static void dispose(){
         if(!headless){
-            dalani.dispose();
+            glacium.dispose();
         }
     }
 
     /**
      * Resolves shader files from this mod via {@link Vars#tree}.
      * @param name The shader file name, e.g. {@code my-shader.frag}.
-     * @return     The shader file, located inside {@code shaders/confictura/}.
+     * @return The shader file, located inside {@code shaders/confictura/}.
      */
     public static Fi file(String name){
         return tree.get("shaders/" + name);
@@ -114,19 +131,52 @@ public class ExoShaders {
         }
     }
 
-    public static class SurfaceShader extends Shader {
-        Texture noiseTex;
+    public static class RingShader extends Shader{
+        public TextureRegion baseRegion;
+        public float alpha;
+        public float inRadius = 0.65f, outRadius = 1f;
+        public float planetRadius = 1f;
+        public Vec3 planetPos = new Vec3(), sunPos = new Vec3();
 
-        public SurfaceShader(String frag) {
+        public RingShader(String vertexShader, String fragmentShader){
+            super(
+                    file(vertexShader + ".vert"),
+                    file(fragmentShader + ".frag")
+            );
+        }
+
+        @Override
+        public void apply(){
+            if (baseRegion == null) baseRegion = Core.atlas.find("router");
+
+            baseRegion.texture.bind(0);
+            setUniformi("u_texture", 0);
+            setUniformf("u_textureUV", baseRegion.u, baseRegion.v, baseRegion.u2, baseRegion.v2);
+
+            setUniformf("u_opacity", 1f - alpha);
+
+            setUniformf("u_planet_pos", planetPos.x, planetPos.y, planetPos.z);
+            setUniformf("u_sun_pos", sunPos.x, sunPos.y, sunPos.z);
+
+            setUniformf("u_stroke", inRadius, outRadius);
+            setUniformf("u_planet_radius", planetRadius);
+        }
+    }
+
+    public static class SurfaceShader extends Shader{
+        Texture noiseTex;
+        float seed = (float)Math.random();
+
+        public SurfaceShader(String frag){
             super(Shaders.getShaderFi("screenspace.vert"), tree.get("shaders/" + frag + ".frag"));
             loadNoise();
         }
 
-        public String textureName() {
+        public String textureName(){
             return "noise";
         }
 
-        public void loadNoise() {
+        public void loadNoise(){
             assets.load("sprites/" + textureName() + ".png", Texture.class).loaded = t -> {
                 t.setFilter(Texture.TextureFilter.linear);
                 t.setWrap(Texture.TextureWrap.repeat);
@@ -134,7 +184,7 @@ public class ExoShaders {
         }
 
         @Override
-        public void apply() {
+        public void apply(){
             setUniformf("u_campos",
                     camera.position.x - camera.width / 2,
                     camera.position.y - camera.height / 2
@@ -143,9 +193,10 @@ public class ExoShaders {
             setUniformf("u_resolution", camera.width, camera.height);
             setUniformf("u_rresolution", graphics.getWidth(), graphics.getHeight());
             setUniformf("u_time", Time.time);
+            setUniformf("u_seed", seed);
 
-            if(hasUniform("u_noise")) {
-                if(noiseTex == null) {
+            if(hasUniform("u_noise")){
+                if(noiseTex == null){
                     noiseTex = assets.get("sprites/" + textureName() + ".png", Texture.class);
                 }
 

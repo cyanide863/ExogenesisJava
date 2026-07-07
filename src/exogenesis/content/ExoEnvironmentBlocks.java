@@ -1,5 +1,6 @@
 package exogenesis.content;
 
+import arc.graphics.Color;
 import exogenesis.graphics.ExoPal;
 import exogenesis.world.blocks.ExoPowerProp;
 import mindustry.content.Items;
@@ -29,21 +30,23 @@ public class ExoEnvironmentBlocks {
 
     blackSand, ferricSand, ferricSlate, ferricSandWater, ferricStoneWater,
 
-    marble, marbleStale, marbleWater, marbleWall, turraka, phosleStone, turrakaWater, phosleStoneWater, turrakaBoulder, smallMarbleBoulder, mediumMarbleBoulder, giantMarbleBoulder, gildedMarble,
+    marble, limestone, cobbeledLimestone, pearlstone, quartzMass, darkLimestone, marbleStale, marbleWater, marbleWall, limestoneWall, turraka, phosleStone, turrakaWater, phosleStoneWater, turrakaBoulder, smallMarbleBoulder, mediumMarbleBoulder, giantMarbleBoulder, gildedMarble,
 
-    erythriteFloor, erythriteRouphFloor, crystallineCoboltStone, crystallineCoboltSlate,  coboltCrystalFloor, rouphCoboltFloor, coboltCrystallineBoulder, crystallineCoboltCrystals, erythriteFloorWater, coboltCrystalFloorWater,
-    erythriteWall, coboltCrystalWall, coboltCrystallineWall, coboltDeposit, coboltCrystal, coboltDepositWall,
+    erythriteFloor, erythriteRouphFloor, erythriteCrystal, erythriteBoulder, crystallineCoboltStone, crystallineCoboltSlate,  coboltCrystalFloor, rouphCoboltFloor, coboltCrystallineBoulder, crystallineCoboltCrystals, erythriteFloorWater, coboltCrystalFloorWater,
+    erythriteWall, coboltCrystalWall, coboltCrystallineWall, coboltDeposit, coboltCrystal, coboltDepositWall, crystalFlower,
 
-    skystonegrey, skystone, vanstarock, rouphVanstarock, vanstarockCratered, vanstarockSlate, vanstarockWall, vanstarockVinedWall, vanstarockRound, vanstarockBoulder, skystonebright,vanstarockWater,
+    skystonegrey, skystone, vanstarock, vanstarockPerodite, rouphVanstarock, vanstarockCratered, vanstarockSlate, vanstarockWall, vanstarockVinedWall, vanstarockRound, vanstarockBoulder, skystonebright,vanstarockWater,
     voltCrystalRed, voltCrystalBlue, voltCrystalYellow,
     //Axin
     axinCrystal, poolAxinPlasma , axinIce, axinPurpleStone, axinPurpleStoneMineral,  axinStone, axincarbonStone, axinRock, axinStoneWall,
     thenmialPlasma, thenmialPlasmaShallow, thenmialPlasmaDeep, thenmialPlasmaAbyssal, axinCyanSlate, axinSlate, axinCrystalStone, axinPurpleRock, axinPurpleSlate,
     axinStoneMinerals, alignPlating, axinCrystalBlue, axinCrystalPurple, axinCrystalTile, colossalAxinMonolith, largeAxinMonolith, mediumAxinMonolith, smallAxinMonolith, diamondGrowth, diamondTile,
     diamondWall, axinPurpleWall, axinCrystalStoneWall, axinCarvakStone, axinSlate2, axinCrystalRockBoulder, curtusesGeode, axinBoulder, axinCarvakStoneWall, axinCrystalRock, thermakronxCrystal, axinCrystalRock1,
+    //Hadroxa
+    obisidianTile, superSlag,
     //ore
     oreOltuxium, oreGraphite, oreExoThorium, oreCobolt, rustyCopperOre, ferricDeposit, oreChronophite, oreGold, oreNeodymium, oreVousar, oreLightningStone, oreRadite, oreViliolite, oreLuxite, oreAxiradamite, oreUrbium, oreLanosium, ferricIronWall,
-            peridotiteOreWall, magnetiteCrystal, magnetiteOreWall, ferricMagnetiteOreWall, peridotCrystal, lightningCrystal, lightningStoneCrystal, luxiteCrystal, voilitCrystal, nickelGeode, curtusesOre ;
+            peridotiteOreWall, magnetiteCrystal, magnetiteOreWall, ferricMagnetiteOreWall, peridotCrystal, lightningCrystal, lightningStoneCrystal, luxiteCrystal, redThunderStone, voilitCrystal, nickelGeode, curtusesOre ;
     public static void load() {
         oreOsmium = new OreBlock(ExoItems.osmium) {{
             variants = 5;
@@ -246,6 +249,20 @@ public class ExoEnvironmentBlocks {
             albedo = 0.2f;
         }};
 
+        crystalFlower = new Prop("crystal-flower") {{
+            variants = 4;
+        }};
+        erythriteCrystal = new TallBlock("large-erythrite-crystal") {{
+            clipSize = 88f;
+            variants = 3;
+            shadowAlpha = 0.2f;
+            rotationRand = 120;
+        }};
+        erythriteBoulder = new Prop("erythrite-boulder") {{
+            variants = 2;
+        }};
+
+
         //Vanstar Rock field
         vanstarock = new Floor("vanstarock") {{
             variants = 7;
@@ -254,6 +271,9 @@ public class ExoEnvironmentBlocks {
             variants = 5;
         }};
         vanstarockSlate = new Floor("vanstar-rock-slate") {{
+            variants = 4;
+        }};
+        vanstarockPerodite = new Floor("vanstarock-perodite") {{
             variants = 4;
         }};
 
@@ -406,7 +426,28 @@ public class ExoEnvironmentBlocks {
             isLiquid = true;
             albedo = 0.9f;
         }};
+        quartzMass = new Floor("quartz-mass"){{
+            itemDrop = ExoItems.quartz;
+            playerUnmineable = true;
+            variants = 3;
+        }};
 
+        limestone = new Floor("limestone") {{
+            variants = 4;
+        }};
+        pearlstone = new Floor("pearlstone") {{
+            variants = 4;
+        }};
+        cobbeledLimestone = new Floor("limestone-cobble") {{
+            variants = 4;
+        }};
+        darkLimestone = new Floor("dark-limestone") {{
+            variants = 4;
+        }};
+        limestoneWall = new StaticWall("limestone-wall") {{
+            variants = 2;
+            limestone.asFloor().wall = this;
+        }};
         marbleWall = new StaticWall("marble-wall") {{
             variants = 3;
             marble.asFloor().wall = this;
@@ -554,12 +595,18 @@ public class ExoEnvironmentBlocks {
             itemDrop = ExoItems.lightningStone;
             clipSize = 128f;
         }};
+        redThunderStone = new TallBlock("redthunder-crystal") {{
+            variants = 3;
+            rotationRand = 40f;
+            clipSize = 128f;
+        }};
         luxiteCrystal = new TallBlock("luxite-stone-crystal") {{
             variants = 3;
             rotationRand = 40f;
             itemDrop = ExoItems.luxiteStone;
             clipSize = 128f;
         }};
+
         voilitCrystal = new TallBlock("violit-stone-crystal") {{
             variants = 3;
             rotationRand = 40f;
@@ -775,5 +822,29 @@ public class ExoEnvironmentBlocks {
         smallAxinMonolith = new TallBlock("small-AxinMonolith") {{
             clipSize = 88f;
         }};
+
+        //Hadroxa
+        obisidianTile = new Floor("obsidian") {{
+            variants = 9;
+        }};
+        superSlag = new Floor("super-slag"){{
+            drownTime = 230f;
+            status = StatusEffects.melting;
+            albedo = 1;
+            statusDuration = 240f;
+            speedMultiplier = 0.19f;
+            variants = 0;
+            liquidDrop = Liquids.slag;
+            isLiquid = true;
+            cacheLayer = CacheLayer.slag;
+            attributes.set(Attribute.heat, 0.85f);
+
+            emitLight = true;
+            lightRadius = 40f;
+            lightColor = Color.orange.cpy().a(0.38f);
+            obstructsLight = true;
+            forceDrawLight = true;
+        }};
+
     }
 }

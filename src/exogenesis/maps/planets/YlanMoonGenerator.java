@@ -19,35 +19,12 @@ import mindustry.world.*;
 import static mindustry.Vars.*;
 
 public class YlanMoonGenerator extends PlanetGenerator{
-    public Seq<HeightPass> heights = new Seq<>();
-    public Seq<ColorPass> colors = new Seq<>();
-    public float baseHeight = 1;
-    public Color baseColor = Color.white;
-
-    public float rawHeight(Vec3 position) {
-        float height = baseHeight;
-        for (HeightPass h : heights) {
-            height = h.height(position, height);
-        }
-        return height;
-    }
+    Color c1 = Color.valueOf("898e9a"), c2 = Color.valueOf("272766");
+    public YlanMoonGenerator() { baseSeed = 12345; }
 
     @Override
-    public void generateSector(Sector sector) {
-
-    }
-
-    @Override
-    public float getHeight(Vec3 position) {
-        return rawHeight(position);
-    }
-
-    @Override
-    public void getColor(Vec3 position, Color out) {
-        Color color = baseColor;
-        for (ColorPass c : colors) {
-            if (c.color(position, rawHeight(position)) != null) color = c.color(position, rawHeight(position));
-        }
-        out.set(color);
+    public void getColor(Vec3 pos, Color out){
+        float depth = Simplex.noise3d(seed, 8, 0.56, 1.7f, pos.x, pos.y, pos.z) / 2f;
+        out.set(c1).lerp(c2, Mathf.clamp(Mathf.round(depth, 0.15f))).a(1f - 0.2f).toFloatBits();
     }
 }

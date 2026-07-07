@@ -4,12 +4,10 @@ import exogenesis.content.effects.ExoChargeFx;
 import exogenesis.content.effects.ExoHitFx;
 import exogenesis.content.effects.ExoShootFx;
 import exogenesis.entities.part.EffectSpawnPart;
-import exogenesis.type.DamageType;
 import exogenesis.type.bullet.*;
 import exogenesis.type.bullet.vanilla.*;
 import exogenesis.type.weather.LightningStorm;
 import exogenesis.world.blocks.unit.UnitCrafter;
-import exogenesis.world.power.LightningRod;
 import exogenesis.world.turrets.PowerShootTypeTurret;
 import exogenesis.world.turrets.SpeedupTurret;
 import exogenesis.graphics.ExoPal;
@@ -34,9 +32,9 @@ import mindustry.world.blocks.defense.turrets.*;
 import mindustry.world.blocks.units.*;
 import mindustry.world.consumers.ConsumeLiquid;
 import mindustry.world.draw.*;
-import mindustry.world.meta.BuildVisibility;
 import mindustry.world.meta.Env;
 
+import static arc.math.Angles.randLenVectors;
 import static exogenesis.content.ExoDamageTypes.*;
 import static mindustry.type.ItemStack.*;
 import static arc.graphics.g2d.Draw.*;
@@ -45,9 +43,9 @@ import static arc.graphics.g2d.Lines.*;
 public class ExoBlocks{
     public static Block
     //serpulo
-    pine, ignition, guard, comet, forebode, enforcer, warden, javelin, orbit, indurance, avenger, weld, longinus, phantom, supercritical, augur, dread, fallout, testTurret,
+    pine, ignition, guard, comet, forebode, enforcer, warden, javelin, orbit, indurance, avenger, weld, longinus, phantom, supercritical, augur, projectJupiter, nexusCannon, dread, fallout, testTurret,
     //Erekir
-    levaithan,
+    fusionTorch, oracle, levaithan, nuclearFury, gammaPulse,
 
     //blocks
     astral, starFleet, cosmos, armada, astrology, stellar, coldPlasmaThrower, sagittarius, nebula, halley, magnetar, neutronMortar, biltzar,
@@ -58,7 +56,7 @@ public class ExoBlocks{
     zetaRefabricator, trueMechAssembler, supportAssembler, hoverAssembler, airTitanAssembler, groundTitanAssembler, leggedTitanAssembler,
 
     //test
-    testShooter;
+    testShooter, heliumFlash;
 
     public static void load(){
 
@@ -141,6 +139,22 @@ public class ExoBlocks{
                     }}, "aresususususu-ammo"
 
             );
+        }};
+        heliumFlash = new UnitCargoLoader("Helium-flash-pad"){{
+            requirements(Category.turret, with(Items.silicon, 80, Items.surgeAlloy, 50, Items.oxide, 20));
+            unitType = ExoVanillaUnitTypes.heliumFlashTurret;
+            size = 5;
+            health = 50000;
+            armor = 20;
+            unitBuildTime = 60f * 8f;
+
+            consumePower(8f / 60f);
+
+            //intentionally set absurdly high to make this block not overpowered
+            consumeLiquid(ExoLiquids.helium, 10f / 60f);
+
+            itemCapacity = 0;
+            researchCost = with(Items.silicon, 2500, Items.surgeAlloy, 20, Items.oxide, 30);
         }};
         //serpulo
         pine = new ItemTurret("pine-missile"){{
@@ -1029,6 +1043,809 @@ public class ExoBlocks{
             coolant = consumeCoolant(1f);
             scaledHealth = 145;
         }};
+        projectJupiter = new ItemTurret("project-jupiter"){{
+            requirements(Category.turret, with(ExoItems.osmium, 345, Items.graphite, 400, Items.surgeAlloy, 350, ExoItems.voltriumAlloy, 175, Items.thorium, 250));
+            ammo(
+                    Items.copper, new ExoBasicBulletType(16f, 30){{
+                        addDamageMultiplier(
+                                kinetic, 1f
+                        );
+                        collidesTiles = false;
+                        sprite = "exogenesis-gauss-bullet";
+                        width = 25;
+                        height = 30;
+                        ammoPerShot = 5;
+                        reloadMultiplier = 8;
+                        shootEffect = new MultiEffect(ExoFx.polarisShoot, new Effect(7, e -> {
+                            color(e.color);
+                            float w = 1.2f + 4 * e.fout();
+
+                            for(int i : Mathf.signs){
+                                Drawf.tri(e.x, e.y, w * 1.3f, 18f * e.fout(), e.rotation + i * 90f);
+                            }
+
+                            Drawf.tri(e.x, e.y, w, 4f * e.fout(), e.rotation + 180f);
+                        }));
+                        smokeEffect = new Effect(30,e->{
+                            Draw.z(Layer.effect);
+                            Draw.color(e.color,e.fout());
+                            Tmp.v1.trns(e.rotation, e.fin()*20f);
+                            Lines.ellipse(Tmp.v1.x + e.x, Tmp.v1.y + e.y , 1.1f*e.fin()+0.1f, 16,27, e.rotation);
+                            Lines.stroke(4f*e.fout());
+                        });
+                        hitEffect = Fx.flakExplosionBig;
+                        fragLifeMin = 0.8f;
+                        fragBullets = 23;
+                        fragRandomSpread = 35f;
+                        fragVelocityMin = 0.7f;
+                        fragBullet = new ExoBasicBulletType(9f, 12){{
+                            addDamageMultiplier(
+                                    kinetic, 1f
+                            );
+
+                            width = 5f;
+                            height = 12f;
+                            shrinkY = 1f;
+                            trailWidth = 2;
+                            trailLength = 10;
+                            fragBullets = 4;
+                            collidesTiles = false;
+                            backColor = hitColor = trailColor = Pal.bulletYellowBack;
+                            frontColor = Pal.bulletYellow;
+                            mixColorFrom = new Color(1f, 1f, 1f, 0f);
+                            mixColorTo = new Color(1f, 1f, 1f, 0f);
+                            lifetime = 20f;
+                            despawnEffect = Fx.none;
+                        }};
+                        trailWidth = 2;
+                        trailLength = 10;
+                        fragBullets = 4;
+                        collidesGround = true;
+                        backColor = hitColor = trailColor = Pal.bulletYellowBack;
+                        frontColor = Pal.bulletYellow;
+                        mixColorFrom = new Color(1f, 1f, 1f, 0f);
+                        mixColorTo = new Color(1f, 1f, 1f, 0f);
+                        despawnEffect = Fx.hitBulletColor;
+                    }},
+                    Items.titanium, new ExoBasicBulletType(16f, 600){{
+                        ammoMultiplier = 2f;
+                        addDamageMultiplier(
+                                kinetic, 0.5f,
+                                ExoDamageTypes.pierce, 0.5f
+                        );
+                        pierceArmor = true;
+                        pierceCap = 2;
+                        pierce = true;
+                        collidesTiles = false;
+                        shootEffect = new MultiEffect(ExoFx.polarisShoot, new Effect(13, e -> {
+                            color(e.color);
+                            float w = 1.2f + 7 * e.fout();
+
+                            Drawf.tri(e.x, e.y, w, 45f * e.fout(), e.rotation);
+                            color(e.color);
+
+                            for(int i : Mathf.signs){
+                                Drawf.tri(e.x, e.y, w * 3.3f, 18f * e.fout(), e.rotation + i * 90f);
+                            }
+
+                            Drawf.tri(e.x, e.y, w, 4f * e.fout(), e.rotation + 180f);
+                        }));
+                        smokeEffect = new Effect(30,e->{
+                            Draw.z(Layer.effect);
+                            Draw.color(e.color,e.fout());
+                            Tmp.v1.trns(e.rotation, e.fin()*20f);
+                            Lines.ellipse(Tmp.v1.x + e.x, Tmp.v1.y + e.y , 1.1f*e.fin()+0.1f, 16,27, e.rotation);
+                            Lines.stroke(4f*e.fout());
+                        });
+                        sprite = "exogenesis-gauss-bullet";
+                        width = 25;
+                        height = 30;
+                        hitEffect = Fx.flakExplosionBig;
+                        fragLifeMin = 0.8f;
+                        fragBullets = 3;
+                        fragRandomSpread = 20f;
+                        fragVelocityMin = 0.7f;
+                        fragBullet = new BasicBulletType(3f, 12, "bullet"){{
+                            width = 5f;
+                            height = 12f;
+                            shrinkY = 1f;
+                            trailWidth = 2;
+                            trailLength = 10;
+                            fragBullets = 4;
+                            collidesTiles = false;
+                            frontColor = Color.white;
+                            backColor = trailColor = hitColor = Pal.lancerLaser;
+                            lifetime = 20f;
+                            despawnEffect = Fx.none;
+                        }};
+                        trailWidth = 2;
+                        trailLength = 10;
+                        fragBullets = 4;
+                        collidesGround = true;
+                        frontColor = Color.white;
+                        backColor = trailColor = hitColor = Pal.lancerLaser;
+                        despawnEffect = Fx.hitBulletColor;
+                    }},
+                    Items.thorium, new ExoBasicBulletType(16f, 1500){{
+                        ammoMultiplier = 2f;
+                        reloadMultiplier = 0.6f;
+                        addDamageMultiplier(
+                                kinetic, 0.8f,
+                                ExoDamageTypes.pierce, 0.2f
+                        );
+                        pierceArmor = true;
+                        collidesTiles = false;
+                        shootEffect = new MultiEffect(ExoFx.polarisShoot, new Effect(13, e -> {
+                            color(e.color);
+                            float w = 1.2f + 7 * e.fout();
+
+                            Drawf.tri(e.x, e.y, w, 45f * e.fout(), e.rotation);
+                            color(e.color);
+
+                            for(int i : Mathf.signs){
+                                Drawf.tri(e.x, e.y, w * 3.3f, 18f * e.fout(), e.rotation + i * 90f);
+                            }
+
+                            Drawf.tri(e.x, e.y, w, 4f * e.fout(), e.rotation + 180f);
+                        }));
+                        smokeEffect = new Effect(30,e->{
+                            Draw.z(Layer.effect);
+                            Draw.color(e.color,e.fout());
+                            Tmp.v1.trns(e.rotation, e.fin()*20f);
+                            Lines.ellipse(Tmp.v1.x + e.x, Tmp.v1.y + e.y , 1.1f*e.fin()+0.1f, 16,27, e.rotation);
+                            Lines.stroke(4f*e.fout());
+                        });
+                        sprite = "exogenesis-gauss-bullet";
+                        width = 25;
+                        height = 30;
+                        hitEffect = Fx.flakExplosionBig;
+                        fragLifeMin = 0.8f;
+                        fragBullets = 10;
+                        fragRandomSpread = 20f;
+                        fragVelocityMin = 0.7f;
+
+                        fragBullet = new BasicBulletType(8.1f, 227f){{
+                            lifetime = 8f;
+                            width = 11f;
+                            height = 14f;
+                            hitSize = 7f;
+                            ammoMultiplier = 1;
+                            reloadMultiplier = 1f;
+                            pierceCap = 2;
+                            pierce = true;
+                            pierceBuilding = true;
+                            hitColor = backColor = trailColor = Color.valueOf("ab8ec5");
+                            frontColor = Color.white;
+                            trailWidth = 1.8f;
+                            trailLength = 11;
+                            hitEffect = despawnEffect = Fx.hitBulletColor;
+                            buildingDamageMultiplier = 0.2f;
+                        }};
+                        collidesGround = true;
+                        frontColor = Color.white;
+                        backColor = hitColor = trailColor = Color.valueOf("ab8ec5");
+                        despawnEffect = Fx.hitBulletColor;
+                    }}
+            );
+            shootY = -13.75f;
+            ammoPerShot = 20;
+            cooldownTime = 300;
+            targetBlocks = false;
+            ammoUseEffect = ExoFx.casingLarge;
+            shootWarmupSpeed = 0.095f;
+            minWarmup = 0.85f;
+            reload = 200f;
+            range = 800f;
+            minRange = 200;
+            drawMinRange = true;
+            size = 8;
+            recoil = 9.5f;
+            rotateSpeed = 0.75f;
+            shootCone = 10f;
+            shootSound = Sounds.shootConquer;
+            coolant = consumeCoolant(1f);
+            scaledHealth = 145;
+        }};
+        nexusCannon = new PowerTurret("nexus-cannon"){{
+            requirements(Category.turret, with(ExoItems.osmium, 345, Items.graphite, 400, Items.surgeAlloy, 350, ExoItems.voltriumAlloy, 175, Items.thorium, 250));
+            shootY = 15.5f;
+            inaccuracy = 5;
+            outlineColor = Color.valueOf("202020");
+            shoot = new ShootPattern(){{
+                shots = 6;
+                shotDelay = 3.5f;
+            }};
+            consumePower(20f);
+            drawer = new DrawTurret(){{
+                parts.addAll(
+                        new RegionPart("-sidebody"){{
+                            progress = PartProgress.warmup.curve(Interp.fastSlow);
+                            moves.add(new PartMove(PartProgress.recoil, 0f, -3f, 0f));
+                            moves.add(new PartMove(PartProgress.warmup.delay(0.35f), 0f, -2f, 0f));
+                            moveX = 2.5f;
+                            mirror = under = true;
+                        }},
+                        new RegionPart("-underbody"){{
+                            under = true;
+                            mirror = false;
+                        }},
+                        new RegionPart("-barrel"){{
+                            progress = PartProgress.recoil.curve(Interp.fastSlow);
+                            moveY = -6.5f;
+                            mirror = false;
+                        }}
+                );
+            }};
+
+            shootType = new ExoBasicBulletType(8.5f, 95){{
+                addDamageMultiplier(
+                        ExoDamageTypes.kinetic, 0.2f,
+                        ExoDamageTypes.energy, 0.8f
+                );
+
+                width = 14;
+                height = 28;
+                shrinkY = 0f;
+
+                parts.addAll(
+                        new FlarePart(){{
+                            progress = PartProgress.life;
+                            color1 = Color.valueOf("5b81ff");
+                            sides = 2;
+                            radius = 32;
+                            radiusTo = 32;
+                            stroke = 1.5f;
+                        }}
+                );
+                backSprite = "large-bomb-back";
+                sprite = "mine-bullet";
+                velocityRnd = 0.35f;
+                homingRange = 70;
+                homingPower = 0.01f;
+                weaveScale = 2;
+                weaveMag = 10;
+                trailWidth = 3f;
+                trailLength = 8;
+                trailEffect = Fx.disperseTrail;
+                trailInterval = 2f;
+                trailRotation = true;
+                shootEffect = Fx.shootBigColor;
+                smokeEffect = ExoFx.hitEmpColorSpark;
+                frontColor = Color.white;
+                backColor = trailColor = hitColor = Color.valueOf("5b81ff");
+                lifetime = 34f;
+                fragBullet = new LaserBulletType(65f){{
+                    colors = new Color[]{Color.valueOf("5b81ff"), Color.valueOf("9dbfff"), Color.white};
+                    buildingDamageMultiplier = 0.25f;
+                    width = 19f;
+                    hitEffect = Fx.hitLancer;
+                    sideAngle = 175f;
+                    sideWidth = 1f;
+                    sideLength = 40f;
+                    lifetime = 22f;
+                    drawSize = 400f;
+                    length = 80f;
+                    pierceCap = 2;
+                    optimalLifeFract = 1f;
+                }};
+                fragSpread = fragRandomSpread = intervalRandomSpread = 0f;
+
+                hitEffect = despawnEffect = new MultiEffect(ExoFx.coloredHitLarge, ExoFx.empyreanStarHitSmall);
+            }};
+            reload = 90f;
+            range = 300f;
+            size = 8;
+            recoil = 0f;
+            recoilTime = 50;
+            rotateSpeed = 5f;
+            inaccuracy = 1f;
+            shootCone = 30f;
+            shootSound = Sounds.shootReign;
+            coolant = consumeCoolant(1f);
+
+            scaledHealth = 145;
+        }};
+
+        fusionTorch = new ContinuousLiquidTurret("fusion-torch"){{
+            requirements(Category.turret, with(Items.tungsten, 150, Items.silicon, 200, Items.oxide, 40, Items.beryllium, 400));
+            flammabilityScale = 0;
+            drawer = new DrawTurret("reinforced-"){{
+
+                Color heatc = Color.valueOf("ff923f");
+                heatColor = heatc;
+                parts.addAll(
+                        new HaloPart(){{
+                            progress = PartProgress.recoil;
+                            colorTo = Color.valueOf("ff5941");
+                            color = Color.valueOf("ff923f00");
+                            layer = Layer.effect;
+                            y = -11;
+                            x = -8;
+                            haloRotation = -45f;
+                            shapeRotation = 180;
+                            shapes = 2;
+                            stroke = 0;
+                            strokeTo = 2;
+                            triLength = 0f;
+                            triLengthTo = 18f;
+                            haloRadius = haloRotateSpeed = haloRadiusTo = 0;
+                            tri =
+                            mirror = false;
+                            radius = 3.7f;
+                        }},
+                        new RegionPart("-barrel"){{
+                            progress = PartProgress.warmup.blend(PartProgress.heat, 0.45f);
+                            moves.add(new PartMove(PartProgress.warmup.delay(0.5f), 2.7f, 0f, 0f));
+                            children.addAll(
+                                new RegionPart("-barrelglow"){{
+                                    progress = PartProgress.recoil.blend(PartProgress.heat, 0.45f);
+                                    layerOffset = 0.001f;
+                                    colorTo = Color.valueOf("ff923f");
+                                    color = Color.valueOf("ff923f00");
+                                    blending = Blending.additive;
+                                    outline = mirror = false;
+                                }});
+                            mirror = true;
+                            moveRot = -6.5f;
+                            moveY = 6;
+                            heatColor = heatc;
+                        }},
+                        new RegionPart("-exhaust-heat"){{
+                            progress = PartProgress.heat.blend(PartProgress.recoil, 0.25f);
+                            mirror = false;
+                            outline = false;
+                            layer = Layer.effect;
+                            colorTo = Color.valueOf("ffffff");
+                            color = Color.valueOf("ff923f00");
+                        }},
+                        new RegionPart("-glow"){{
+                            progress = PartProgress.heat.blend(PartProgress.recoil, 0.25f);
+                            mirror = false;
+                            outline = false;
+                            layer = 1;
+                            blending = Blending.additive;
+                            colorTo = Color.valueOf("ff923f");
+                            color = Color.valueOf("ff923f00");
+                        }},
+                        new RegionPart("-exhaust-glow"){{
+                            progress = PartProgress.heat.blend(PartProgress.recoil, 0.25f);
+                            mirror = false;
+                            outline = false;
+                            layer = Layer.effect;
+                            colorTo = Color.valueOf("ff5941");
+                            color = Color.valueOf("ff594100");
+                        }},
+                        new RegionPart("-large-plate"){{
+                            progress = PartProgress.warmup.blend(PartProgress.heat, 0.45f);
+                            children.addAll(
+                                    new RegionPart("-plateglow"){{
+                                        progress = PartProgress.recoil.blend(PartProgress.heat, 0.45f);
+                                        layerOffset = 0.001f;
+                                        colorTo = Color.valueOf("ff923f");
+                                        color = Color.valueOf("ff923f00");
+                                        blending = Blending.additive;
+                                        outline = mirror = false;
+                                    }});
+                            mirror = true;
+                            layerOffset = -0.003f;
+                            outlineLayerOffset = 0.001f;
+                            moveY = -1.7f;
+                            moveX = 1.7f;
+                        }},
+                        new RegionPart("-side"){{
+                            progress = PartProgress.warmup.blend(PartProgress.heat, 0.45f);
+                            children.addAll(
+                                    new RegionPart("-sideglow"){{
+                                        progress = PartProgress.recoil.blend(PartProgress.heat, 0.45f);
+                                        layerOffset = 0.001f;
+                                        colorTo = Color.valueOf("ff923f");
+                                        color = Color.valueOf("ff923f00");
+                                        blending = Blending.additive;
+                                        outline = mirror = false;
+                                    }});
+                            mirror = true;
+                            layerOffset = -0.005f;
+                            outlineLayerOffset = 0.004f;
+                            moveRot = -25.5f;
+                            moveY = -2.5f;
+                            moveX = 10.5f;
+                        }},
+                        new RegionPart("-side"){{
+                            progress = PartProgress.warmup.blend(PartProgress.heat, 0.45f);
+                            children.addAll(
+                                    new RegionPart("-sideglow"){{
+                                        progress = PartProgress.recoil.blend(PartProgress.heat, 0.45f);
+                                        layerOffset = 0.001f;
+                                        colorTo = Color.valueOf("ff923f");
+                                        color = Color.valueOf("ff923f00");
+                                        blending = Blending.additive;
+                                        outline = mirror = false;
+                                    }});
+                            mirror = true;
+                            layerOffset = -0.005f;
+                            outlineLayerOffset = 0.004f;
+                            moveRot = -54.5f;
+                            moveY = -5.5f;
+                            moveX = 12.5f;
+                        }},
+                        new ShapePart(){{
+                            progress = PartProgress.warmup;
+                            color = Color.valueOf("8ca9e8");
+                            layer = Layer.effect;
+                            circle = true;
+                            hollow = true;
+                            stroke = 0f;
+                            strokeTo = 1.1f;
+                            radius = radiusTo = 5f;
+                            y = -23;
+                        }},
+                        new ShapePart(){{
+                            progress = PartProgress.warmup.delay(0.2f);
+                            color = Color.valueOf("8ca9e8");
+                            layer = Layer.effect;
+                            circle = true;
+                            hollow = true;
+                            stroke = 0f;
+                            strokeTo = 1.9f;
+                            radius = radiusTo = 9f;
+                            y = -23;
+                        }},
+                        new HaloPart(){{
+                            progress = PartProgress.warmup.delay(0.22f);
+                            color = Color.valueOf("8ca9e8");
+                            layer = Layer.effect;
+                            y = -23;
+                            shapes = 4;
+                            stroke = 0;
+                            strokeTo = 2;
+                            triLength = 0f;
+                            triLengthTo = 5f;
+                            haloRotateSpeed = 1.7f;
+                            haloRadius  = haloRadiusTo = 9;
+                            tri = true;
+                            mirror = false;
+                            radius = 3.5f;
+                        }},
+                        new HaloPart(){{
+                            progress = PartProgress.warmup.delay(0.35f);
+                            color = Color.valueOf("8ca9e8");
+                            layer = Layer.effect;
+                            y = -23;
+                            haloRotation = 90f;
+                            shapeRotation = 180;
+                            shapes = 2;
+                            stroke = 0;
+                            strokeTo = 2;
+                            triLength = 0f;
+                            triLengthTo = 3f;
+                            haloRotateSpeed = 0;
+                            haloRadius  = haloRadiusTo = 12;
+                            tri = mirror = true;
+                            radius = 3f;
+                        }},
+                        new HaloPart(){{
+                            progress = PartProgress.warmup.delay(0.35f);
+                            color = Color.valueOf("8ca9e8");
+                            layer = Layer.effect;
+                            y = -23;
+                            haloRotation = 90f;
+                            shapes = 2;
+                            stroke = 0;
+                            strokeTo = 2;
+                            triLength = 0f;
+                            triLengthTo = 13f;
+                            haloRotateSpeed = 0;
+                            haloRadius  = haloRadiusTo = 12;
+                            tri = mirror = true;
+                            radius = 3f;
+                        }}
+                );
+            }};
+            outlineColor = Pal.darkOutline;
+            recoil = 1;
+            shake = 7;
+            cooldownTime = 240;
+            heatRequirement = 20;
+            maxHeatEfficiency = 1;
+            liquidCapacity = 150f;
+            liquidConsumed = 18f / 60f;
+            targetInterval = 5f;
+            newTargetInterval = 30f;
+            targetUnderBlocks = false;
+            shootY = 6f;
+            consumePower(48f);
+            float r = range = 200f;
+
+            loopSound = Sounds.shootSublimate;
+            shootSound = Sounds.none;
+            loopSoundVolume = 1.6f;
+
+            ammo(
+                    Liquids.hydrogen, new ExoContinuousFlameBulletType(){{
+                        damage = 60f;
+                        length = r - 90;
+                        rangeChange = -90;
+                        addDamageMultiplier(
+                                thermal, 1f
+                        );
+                        drawFlare = false;
+                        shootEffect = new MultiEffect(
+                                ExoShootFx.shootHydrogenFlame,
+                                ExoShootFx.sparkLargeHydrogen
+                        );
+                        ammoMultiplier = 1.2f;
+                        hitColor = Color.valueOf("ff6623");
+                        knockback = 1f;
+                        pierceCap = 2;
+                        width = 10.7f;
+                        oscScl = 0.9f;
+                        oscMag = 0.06f;
+                        buildingDamageMultiplier = 0.3f;
+                        intervalBullets = 3;
+                        intervalRandomSpread = 60;
+                        bulletInterval = 3;
+                        intervalBullet = new FireBulletType(5.5f,10) {{
+                            lifetime = 20;
+                            incendChance = incendSpread = incendAmount = 0;
+                            instantDisappear = true;
+                            pierceCap = 1;
+                            radius = 4;
+                            despawnHit = true;
+                            despawnEffect = hitEffect = new MultiEffect(
+                                    ExoShootFx.shootHydrogenFlame,
+                                    ExoShootFx.sparkLargeHydrogen
+                            );
+                            collides = true;
+                            absorbable = false;
+//                            hitColor = Color.valueOf("7dbf5a");
+                            drag = 0.0001f;
+//                            colorFrom = Color.valueOf("e4ffd6");
+//                            colorMid = Color.valueOf("69cbff");
+//                            colorTo = Color.valueOf("7dbf5a");
+                            fragBullets = 1;
+                            fragRandomSpread = 0;
+                            fragBullet = new FireBulletType(5.5f,10) {{
+                                lifetime = 20;
+                                velocityRnd = 0.7f;
+                                incendChance = incendSpread = incendAmount = 0;
+
+                                pierceCap = 1;
+                                radius = 4;
+                                collides = true;
+                                absorbable = false;
+                                hitEffect = Fx.hitFlameSmall;
+//                            hitColor = Color.valueOf("7dbf5a");
+                                drag = 0.0001f;
+//                            colorFrom = Color.valueOf("e4ffd6");
+//                            colorMid = Color.valueOf("69cbff");
+//                            colorTo = Color.valueOf("7dbf5a");
+                            }};
+                        }};
+                        timescaleDamage = true;
+                        lengthWidthPans = new float[]{
+                                1.12f, 1.3f, 0.32f,
+                                1f, 1f, 0.3f,
+                                0.8f, 0.9f, 0.2f,
+                                0.5f, 0.8f, 0.15f,
+                                0.25f, 0.7f, 0.1f
+                        };
+                        colors = new Color[]{
+                                Color.valueOf("ffa42e").a(0.4f),
+                                Color.valueOf("ffd45b"),
+                                Color.valueOf("fff69b"),
+                                Color.valueOf("ff6623").a(0.4f),
+                                Color.valueOf("91a4ff00")
+                        };
+                    }},
+                    ExoLiquids.helium, new ExoContinuousFlameBulletType(){{
+                        damage = 60f;
+                        length = r;
+                        addDamageMultiplier(
+                                thermal, 1f
+                        );
+                        drawFlare = false;
+                        hitColor = Color.valueOf("ffa84a");
+                        shootEffect = new MultiEffect(
+                                ExoShootFx.shootHeliumFlame,
+                                ExoShootFx.sparkLargeHelium
+                        );
+                        ammoMultiplier = 1.2f;
+                        width = 8.7f;
+                        oscScl = 1.2f;
+                        oscMag = 0.05f;
+                        knockback = 1f;
+                        pierceCap = 4;
+                        pierceArmor = true;
+                        buildingDamageMultiplier = 0.3f;
+                        intervalBullets = 2;
+                        intervalRandomSpread = 50;
+                        bulletInterval = 2;
+                        intervalBullet = new FireBulletType(8.5f,15) {{
+                            lifetime = 15;
+                            pierceCap = 2;
+                            radius = 3;
+                            incendChance = 0;
+                            collides = true;
+                            absorbable = false;
+                            despawnHit = true;
+                            instantDisappear = true;
+                            despawnEffect = hitEffect =  new MultiEffect(
+                                    ExoShootFx.shootHeliumFlame,
+                                    ExoShootFx.sparkLargeHelium
+                            );
+                            hitEffect = ExoHitFx.hitFlamePlasmaColor;
+                            trailEffect2 = ExoFx.ballfireHelium;
+                            trailEffect = Fx.none;
+                            hitColor = Color.valueOf("ffda71");
+                            drag = 0.0001f;
+                            colorFrom = Color.valueOf("ecb5ff");
+                            colorMid = Color.valueOf("ffda71");
+                            colorTo = Color.valueOf("ff5a37");
+                            fragBullets = 1;
+                            fragRandomSpread = 0;
+                            fragBullet = new FireBulletType(8.5f,15) {{
+                                lifetime = 15;
+                                pierceCap = 2;
+                                radius = 3;
+                                incendChance = 0;
+                                collides = true;
+                                absorbable = false;
+                                hitEffect = ExoHitFx.hitFlamePlasmaColor;
+                                trailEffect2 = ExoFx.ballfireHelium;
+                                trailEffect = Fx.none;
+                                hitColor = Color.valueOf("ffda71");
+                                drag = 0.0001f;
+                                colorFrom = Color.valueOf("ecb5ff");
+                                colorMid = Color.valueOf("ffda71");
+                                colorTo = Color.valueOf("ff5a37");
+                            }};
+                        }};
+                        timescaleDamage = true;
+                        lengthWidthPans = new float[]{
+                                1.12f, 1.3f, 0.32f,
+                                1f, 1f, 0.3f,
+                                0.8f, 0.9f, 0.2f,
+                                0.5f, 0.8f, 0.15f,
+                                0.25f, 0.7f, 0.1f
+                        };
+                        colors = new Color[]{
+                                Color.valueOf("ff5a37").a(0.55f),
+                                Color.valueOf("ffa84a").a(0.8f),
+                                Color.valueOf("ffda71"),
+                                Color.valueOf("e496ff"),
+                                Color.white
+                        };
+                    }},
+                    Liquids.ozone, new ExoContinuousFlameBulletType(){{
+                        damage = 60f;
+                        length = r;
+                        addDamageMultiplier(
+                                thermal, 1f
+                        );
+                        flareColor = Color.valueOf("5cb1ff");
+                        flareRotSpeed = 3;
+                        flareWidth = 5;
+                        flareLength = 32;
+                        intervalBullets = 2;
+                        intervalRandomSpread = 30;
+                        bulletInterval = 2;
+                        intervalBullet = new FireBulletType(8.5f,15) {{
+                            lifetime = 15;
+                            pierceCap = 2;
+                            incendChance = incendSpread = incendAmount = 0;
+                            instantDisappear = true;
+                            radius = 3;
+                            collides = true;
+                            absorbable = false;
+                            despawnHit = true;
+                            despawnEffect = hitEffect = new MultiEffect(
+                                    ExoShootFx.shootOzoneFlame,
+                                    ExoShootFx.sparkLargeOzone
+                            );
+                            trailEffect2 = ExoFx.ballfireHelium;
+                            trailEffect = Fx.none;
+                            hitColor = Color.valueOf("ffda71");
+                            drag = 0.0001f;
+                            colorFrom = Color.valueOf("ecb5ff");
+                            colorMid = Color.valueOf("ffda71");
+                            colorTo = Color.valueOf("ff5a37");
+                        }};
+                        shootEffect = new MultiEffect(
+                                ExoShootFx.shootOzoneFlame,
+                                ExoShootFx.sparkLargeOzone
+                        );
+                        hitEffect = new MultiEffect(
+                                ExoHitFx.ozoneFlameHit
+                        );
+
+                        ammoMultiplier = 1.2f;
+                        width = 7.1f;
+                        oscScl = 1.8f;
+                        oscMag = 0.05f;
+                        knockback = 1f;
+                        pierceCap = 6;
+                        pierceArmor = true;
+                        buildingDamageMultiplier = 0.3f;
+                        timescaleDamage = true;
+                        lengthWidthPans = new float[]{
+                                1.12f, 1.3f, 0.32f,
+                                1f, 1f, 0.3f,
+                                0.8f, 0.9f, 0.2f,
+                                0.5f, 0.8f, 0.15f,
+                                0.25f, 0.7f, 0.1f
+                        };
+                        colors = new Color[]{
+                                Color.valueOf("b876ff").a(0.6f),
+                                Color.valueOf("9374ff").a(0.8f),
+                                Color.valueOf("5cb1ff"),
+                                Color.valueOf("a1f7ff"),
+                                Color.white
+                        };
+                    }},
+                    Liquids.cyanogen, new ExoContinuousFlameBulletType(){{
+                        damage = 260f;
+                        length = r + 80;
+                        rangeChange = 80;
+                        addDamageMultiplier(
+                                thermal, 1f
+                        );
+                        drawFlare = false;
+
+                        shootEffect = new MultiEffect(
+                                ExoShootFx.shootCyanogenFlame,
+                                ExoShootFx.sparkLargeCyanogen
+                        );
+                        hitEffect = new MultiEffect(
+                                ExoHitFx.CyanogenFlameHit
+                        );
+                        intervalBullets = 2;
+                        intervalRandomSpread = 30;
+                        bulletInterval = 2;
+                        intervalBullet = new FireBulletType(8.5f,15) {{
+                            lifetime = 15;
+                            pierceCap = 2;
+                            instantDisappear = true;
+                            radius = 3;
+                            incendChance = incendSpread = incendAmount = 0;
+                            collides = true;
+                            absorbable = false;
+                            despawnHit = true;
+                            despawnEffect = hitEffect = new MultiEffect(
+                                    ExoShootFx.shootCyanogenFlame,
+                                    ExoShootFx.sparkLargeCyanogen
+                            );
+                            trailEffect2 = ExoFx.ballfireHelium;
+                            trailEffect = Fx.none;
+                            hitColor = Color.valueOf("ffda71");
+                            drag = 0.0001f;
+                            colorFrom = Color.valueOf("ecb5ff");
+                            colorMid = Color.valueOf("ffda71");
+                            colorTo = Color.valueOf("ff5a37");
+                        }};
+                        ammoMultiplier = 1.2f;
+                        width = 6f;
+                        oscScl = 4.8f;
+                        oscMag = 0.05f;
+                        knockback = 1f;
+                        pierceArmor = true;
+                        buildingDamageMultiplier = 0.3f;
+                        timescaleDamage = true;
+                        colors = new Color[]{
+                                Color.valueOf("1e1ef6").a(0.2f),
+                                Color.valueOf("5353ff").a(0.25f),
+                                Color.valueOf("ff5c87").a(0.6f),
+                                Color.valueOf("3b88ff"),
+                                Color.valueOf("5cffff"),
+                                Color.valueOf("5cb1ff")
+                        };
+                    }}
+            );
+
+            scaledHealth = 210;
+            size = 5;
+
+            researchCost = with(Items.tungsten, 400, Items.silicon, 400, Items.oxide, 80, Items.beryllium, 800);
+        }};
 
         levaithan = new ItemTurret("levaithen"){{
             requirements(Category.turret, with(Items.tungsten, 250, Items.silicon, 300, Items.thorium, 400));
@@ -1288,6 +2105,347 @@ public class ExoBlocks{
             range = 690f;
             size = 8;
         }};
+        nuclearFury = new ItemTurret("nuclear-fury"){{
+            requirements(Category.turret, with(Items.copper, 1200, Items.lead, 350, Items.graphite, 300, Items.surgeAlloy, 325, Items.silicon, 325));
+            range = 450f;
+            shoot.firstShotDelay = 100f;
+            outlineColor = Color.valueOf("202020");
+            recoil = 7f;
+            reload = 680f;
+            shake = 6f;
+            smokeEffect = Fx.none;
+            heatColor = Color.red;
+            rotateSpeed = 0.85f;
+            size = 8;
+            shootY = 14;
+            cooldownTime = 400;
+            recoilTime = 200;
+            scaledHealth = 280;
+            targetAir = false;
+            moveWhileCharging = false;
+            accurateDelay = false;
+            chargeSound = Sounds.chargeLancer;
+            shootSound = ExoSounds.red;
+            shootSoundVolume = 0.6f;
+            coolant = consumeCoolant(0.5f);
+            consumePower(24.0f);
+            drawer = new DrawTurret("reinforced-"){{
+                parts.addAll(
+                        new RegionPart("-afterglow5"){{
+                            progress = PartProgress.warmup.curve(Interp.fastSlow).delay(0.55f).blend(PartProgress.heat, 0.2f);
+                            moveY = -2.5f;
+                            moves.add(new PartMove(PartProgress.recoil, 0f, -3f, 0f));
+                            colorTo =  Color.valueOf("ffffff");
+                            color = Color.valueOf("ffffff00");
+                            layer = Layer.effect;
+                            outline = mirror = false;
+                        }},
+                        new RegionPart("-afterglow4"){{
+                            progress = PartProgress.warmup.curve(Interp.fastSlow).delay(0.4f).blend(PartProgress.heat, 0.2f);
+                            moveY = -2.5f;
+                            moves.add(new PartMove(PartProgress.recoil, 0f, -3f, 0f));
+                            colorTo =  Color.valueOf("ffffff");
+                            color = Color.valueOf("ffffff00");
+                            layer = Layer.effect;
+                            outline = mirror = false;
+                        }},
+                        new RegionPart("-afterglow3"){{
+                            progress = PartProgress.warmup.curve(Interp.fastSlow).delay(0.25f).blend(PartProgress.heat, 0.2f);
+                            moveY = -2.5f;
+                            moves.add(new PartMove(PartProgress.recoil, 0f, -3f, 0f));
+                            colorTo =  Color.valueOf("ffffff");
+                            color = Color.valueOf("ffffff00");
+                            layer = Layer.effect;
+                            outline = mirror = false;
+                        }},
+                        new RegionPart("-afterglow2"){{
+                            progress = PartProgress.warmup.curve(Interp.fastSlow).delay(0.1f).blend(PartProgress.heat, 0.2f);
+                            moveY = -2.5f;
+                            moves.add(new PartMove(PartProgress.recoil, 0f, -3f, 0f));
+                            colorTo =  Color.valueOf("ffffff");
+                            color = Color.valueOf("ffffff00");
+                            layer = Layer.effect;
+                            outline = mirror = false;
+                        }},
+                        new RegionPart("-afterglow1"){{
+                            progress = PartProgress.warmup.curve(Interp.fastSlow).blend(PartProgress.heat, 0.2f);
+                            moveY = -2.5f;
+                            moves.add(new PartMove(PartProgress.recoil, 0f, -3f, 0f));
+                            colorTo =  Color.valueOf("ffffff");
+                            color = Color.valueOf("ffffff00");
+                            layer = Layer.effect;
+                            outline = mirror = false;
+                        }},
+                        new RegionPart("-sides"){{
+                            progress = PartProgress.warmup.curve(Interp.fastSlow).delay(0.1f);
+                            moves.add(new PartMove(PartProgress.recoil, 0f, -2f, 0f));
+                            moveY = -1.5f;
+                            under = true;
+                            mirror = false;
+                        }},
+                        new RegionPart("-under-barrel"){{
+                            progress = PartProgress.warmup.curve(Interp.fastSlow).delay(0.2f);
+                            moves.add(new PartMove(PartProgress.recoil, 0f, -3f, -6f));
+                            moves.add(new PartMove(PartProgress.warmup.delay(0.35f), 0f, 0f, -2f));
+                            moveY = 2.5f;
+                            under = true;
+                            mirror = true;
+                        }},
+                        new RegionPart("-coolant-tank"){{
+                            progress = PartProgress.warmup.delay(0.15f);
+                            moveX = 2.5f;
+                            under = true;
+                            mirror = true;
+                        }},
+                        new RegionPart("-underbody"){{
+                            under = true;
+                            mirror = false;
+                        }},
+                        new RegionPart("-front-barrel"){{
+                            progress = PartProgress.warmup.curve(Interp.fastSlow);
+                            moves.add(new PartMove(PartProgress.recoil, 0f, -3f, -6f));
+                            moves.add(new PartMove(PartProgress.warmup.delay(0.35f), 0f, 0f, -2f));
+                            moveX = 3.5f;
+                            under = true;
+                            mirror = true;
+                        }},
+                        new RegionPart("-core"){{
+                            progress = PartProgress.warmup.curve(Interp.fastSlow).blend(PartProgress.smoothReload, 0.2f);
+                            moveY = -2.5f;
+                            moves.add(new PartMove(PartProgress.recoil, 0f, -3f, 0f));
+                            mirror = false;
+                        }}
+                );
+            }};
+
+            ammo(
+                   Items.oxide, new ExoLaserBulletType(){{
+                        damage = 20f;
+                        length = 450f;
+                        addDamageMultiplier(
+                                thermal, 1f
+                        );
+                        shootEffect = ExoShootFx.HaborymShootColor;
+                        hitEffect = ExoFx.coloredHitLarge;
+                        lifetime = 20;
+                        width = 40;
+                        intervalBullets = 10;
+                        intervalBullet = new FireBulletType(5.5f,30) {{
+                            lifetime = 30;
+                            radius = 3;
+                            collides = true;
+                            absorbable = false;
+                            hitEffect = ExoHitFx.fireHitColor;
+                            hitColor = Color.valueOf("7dbf5a");
+                            drag = 0.0001f;
+                            colorFrom = Color.valueOf("e4ffd6");
+                            colorMid = Color.valueOf("69cbff");
+                            colorTo = Color.valueOf("7dbf5a");
+                        }};
+                        chargeEffect = new MultiEffect(ExoFx.starChargeColor);
+                        hitColor = Color.valueOf("7dbf5a");
+                        lifetime = 20;
+                        knockback = 1f;
+                        pierceCap = 5;
+                        buildingDamageMultiplier = 0.3f;
+
+                        colors = new Color[]{Color.valueOf("7dbf5a").a(0.55f), Color.valueOf("82ed78").a(0.7f), Color.valueOf("69cbff"), Color.valueOf("85f1d5"), Color.valueOf("b9ffe4")};
+                    }},
+                    Items.thorium, new ExoLaserBulletType(){{
+                        colors = new Color[]{ExoPal.cronusRed.cpy().a(0.5f), ExoPal.cronusRedlight.cpy().a(0.8f), Color.valueOf("b4addb"), Color.valueOf("64bcff"), Color.white};
+                        addDamageMultiplier(
+                                thermal, 1f
+                        );
+                        chargeEffect = new MultiEffect(ExoFx.starChargeRed);
+                        damage = 1540;
+                        width = 55;
+                        sideAngle = 45f;
+                        laserEffect = ExoFx.randLifeSparkCone;
+                        shootEffect = ExoFx.empyreanStarHitMedium;
+                        buildingDamageMultiplier = 0.25f;
+                        hitEffect = ExoFx.coloredHitLarge;
+                        lightningColor = hitColor = ExoPal.cronusRed;
+                        lightningSpacing = 30;
+                        lightningLength = 10;
+                        lightningDelay = 0.6f;
+                        lightningLengthRand = 0;
+                        lightningDamage = 50;
+                        lightningAngleRand = 30f;
+                        lightningType = new BulletType(3.4f, 23f){{
+                            hitSize = 7f;
+                            lifetime = 28f;
+                            pierce = true;
+                            collidesAir = false;
+                            statusDuration = 60f * 4;
+                            hitEffect = ExoHitFx.hitFlamePlasmaColor;
+                            despawnEffect = Fx.none;
+                            status = StatusEffects.burning;
+                            keepVelocity = false;
+                            hittable = false;
+                            shootEffect = new Effect(32f, 80f, e -> {
+                                color(Color.white, ExoPal.cronusRed, Color.gray, e.fin());
+
+                                randLenVectors(e.id, 10, e.finpow() * 60f, e.rotation, 90f, (x, y) -> {
+                                    Fill.circle(e.x + x, e.y + y, 0.65f + e.fout() * 1.5f);
+                                    Drawf.light(e.x + x, e.y + y, 16f * e.fout(), ExoPal.cronusRed, 0.6f);
+                                });
+                            });
+                        }};
+                        hitSize = 34;
+                        lifetime = 36f;
+                        drawSize = 400f;
+                        collidesAir = false;
+                        length = 470f;
+                        ammoMultiplier = 1f;
+                    }},
+                    Items.surgeAlloy, new AcceleratingLaserBulletType(200f) {{
+                        lifetime = 80f;
+                        rangeChange = 350;
+                        shootEffect = ExoShootFx.HaborymShootColor;
+                        chargeEffect = new MultiEffect(ExoFx.starChargeYellow);
+                        maxLength = 350f;
+                        laserSpeed = 85f;
+                        pierceArmor = true;
+                        knockback = 6;
+                        lightningColor = hitColor = Pal.surge;
+                        lightningLength = 3;
+                        lightningLengthRand = 8;
+                        lightningDamage = 50;
+                        collidesAir = false;
+                        accel = 5;
+                        fadeInTime = 8f;
+                        fadeTime = 30f;
+                        oscOffset = 0.3f;
+                        width = 20f;
+                        collisionWidth = 20f;
+                        colors = new Color[]{Pal.surgeAmmoBack.cpy().a(0.4f), Pal.surgeAmmoFront.cpy().a(0.8f), Pal.surge, ExoPal.starYellow, Color.white};
+                        hitEffect = ExoFx.randLifeSparkCone;
+                    }});
+        }};
+        gammaPulse = new PowerTurret("apex-atomizer"){{
+            requirements(Category.turret, with(Items.beryllium, 900, Items.silicon, 300, Items.surgeAlloy, 250, Items.thorium, 175, Items.tungsten, 250));
+            range = 220f;
+            recoil = 0f;
+            reload = 230f;
+            shake = 2f;
+            rotateSpeed = 1.3f;
+            shootEffect = Fx.lancerLaserShoot;
+            smokeEffect = ExoShootFx.neutronShoot;
+            heatColor = Color.red;
+            outlineColor = Color.valueOf("202020");
+            size = 8;
+            shootY = 39;
+            scaledHealth = 160;
+            targetAir = false;
+            moveWhileCharging = false;
+            accurateDelay = false;
+            shoot.firstShotDelay = 100f;
+            chargeSound = Sounds.chargeLancer;
+            shootSound = ExoSounds.matter;
+            minWarmup = 0.85f;
+
+            shootWarmupSpeed = 0.07f;
+            warmupMaintainTime = 120f;
+
+            coolant = consume(new ConsumeLiquid(Liquids.hydrogen, 30f / 60f));
+            consumePower(48f);
+            drawer = new DrawTurret("reinforced-"){{
+                parts.addAll(
+                        new EffectSpawnPart() {{
+                            useProgress = true;
+                            mirror = false;
+                            progress = PartProgress.charge.curve(Interp.fastSlow);
+                            y = 33f;
+                            width = 85;
+                            height = 15;
+                            effectColor = Color.valueOf("7dbf5a");
+                            effect = ExoFx.railgunSpark;
+                            randomEffectRot = 5;
+                            effectChance = 0.5f;
+                        }},
+                        new FlarePart(){{
+                            progress = PartProgress.charge.curve(Interp.fastSlow);
+                            color1 = Color.valueOf("45ff3d");
+                            y = 25;
+                            rotation = 90;
+                            layer = Layer.effect;
+                            followRotation = true;
+                            sides = 2;
+                            radius = 0;
+                            radiusTo = 16;
+                            stroke = 2.5f;
+                        }},
+                        new RegionPart("-wing"){{
+                            progress = PartProgress.warmup.curve(Interp.fastSlow).blend(PartProgress.charge, 0.55f);
+                            moves.add(new PartMove(PartProgress.charge.curve(Interp.fastSlow).delay(0.2f), 0f, 0f,  -5f));
+                            moves.add(new PartMove(PartProgress.recoil, 0f, -2f, 0f));
+                            moveX = 10.5f;
+                            under = true;
+                            mirror = true;
+                        }},
+                        new RegionPart("-small-wing"){{
+                            progress = PartProgress.warmup.delay(0.2f).blend(PartProgress.charge, 0.55f);
+                            moves.add(new PartMove(PartProgress.recoil.delay(0.15f), 0f, -2f, 0f));
+                            moveX = 6.5f;
+                            moveY = 2;
+                            under = true;
+                            mirror = true;
+                        }},
+                        new RegionPart("-gamma-pulse"){{
+                            progress = PartProgress.charge.curve(Interp.fastSlow);
+                            moves.add(new PartMove(PartProgress.charge.delay(0.1f), 0f, -2f, 0f));
+                            moves.add(new PartMove(PartProgress.charge.shorten(0.15f), 2f, -1f, 0f));
+                            moves.add(new PartMove(PartProgress.charge.delay(0.12f), 1f, 0f, 2f));
+                            moves.add(new PartMove(PartProgress.charge.shorten(0.2f), -2f, 1f, 1f));
+                            moves.add(new PartMove(PartProgress.charge.delay(0.3f), -3f, 0f, -1f));
+                            colorTo = Color.valueOf("c1ffbe");
+                            mixColor = Color.valueOf("45ff3d");
+                            color = Color.valueOf("3df164").a(0);
+                            y = 23;
+                            moveY = 16;
+                            blending = Blending.additive;
+                            outline = mirror = false;
+                        }}
+                );
+            }};
+
+            shootType = new ExoBasicBulletType (6f, 285) {{
+                backColor = lightningColor = hitColor = trailColor = Color.valueOf("3df164");
+                addDamageMultiplier(
+                        energy, 0.2f,
+                        radiation, 0.8f
+
+                );
+                trailEffect = new ParticleEffect(){{
+                    region = "exogenesis-gamma-pulse-back";
+                    colorFrom = Color.valueOf("3df164");
+                    colorTo = Color.valueOf("3df164").a(0f);
+                    particles = 1;
+                    offset = -90;
+                    sizeTo = sizeFrom = 45;
+                    length = 0;
+                    lifetime = 32f;
+                }};
+                trailChance = 1;
+                trailRotation = true;
+                sprite = "exogenesis-gamma-pulse";
+                buildingDamageMultiplier = 0.25f;
+                status = StatusEffects.shocked;
+                statusDuration = 50;
+                frontColor = Color.white;
+                knockback = 20;
+                pierceArmor = true;
+                pierce = true;
+                pierceCap = 1;
+                width = height = 90;
+                hitSize = 35;
+                shrinkX = shrinkY = 0;
+                shieldDamageMultiplier = 1.25f;
+                lifetime = 90;
+                hitEffect = despawnEffect = ExoFx.hitEmpColorSpark;
+            }};
+        }};
+
 
         testTurret = new ItemTurret("testTurret"){{
             requirements(Category.turret, with(Items.copper, 45, Items.lead, 45));
